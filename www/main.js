@@ -12,9 +12,16 @@ $(document).ready( function() {
 
 function fetchValues(){
 	$.get('/values/', function(data){
-		$('#btc').html(data.btc);
-		$('#eth').html(data.eth);
-		$('#btc-eth').html(data.btcEth);
+		
+		$('#btc_usd').html(data.btcUSD);
+		$('#eth_usd').html(data.ethUSD);
+
+		$('#dgb_usd').html(data.dgbUSD);
+		$('#xrp_usd').html(data.xrpUSD);
+
+		$('#btc_clp').html(data.btcCLP);
+		$('#eth_clp').html(data.ethCLP);
+		$('#btc_eth').html(data.btcEth);
 		$('#arbitrage1').html(data.arbitrage1);
 
 		if(data.arbitrage1.indexOf('-') < 0){

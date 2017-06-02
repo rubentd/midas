@@ -22,7 +22,7 @@ app.listen(PORT);
 
 
 function getValues(res){
-	var btcCLP, ethCLP, btcEth;
+	var btcCLP, ethCLP, btcEth, btcUSD, ethUSD, dgbUSD, xrpUSD;
 
 	var p1 = axios.get('https://www.surbtc.com/api/v2/markets/btc-clp/ticker')
   	.then(function (response) {
@@ -38,21 +38,45 @@ function getValues(res){
     	console.log(error);
   	});
 
-  	var p3 = axios.get('https://btc-e.com/exchange/eth_btc')
+  	var p3 = axios.get('https://btc-e.com')
   	.then(function (response) {
   		$ = cheerio.load(response.data);
-  		btcEth = 1/parseFloat($('#last40').html());
+  		btcUSD = $('#last1').html();
+  		ethUSD = $('#last41').html();
+  		btcEth = 1/parseFloat($('#last40').html()).toFixed(2);
   	}).catch(function (error) {
     	console.log(error);
   	});
 
-  	Promise.all([p1, p2, p3]).then((values) => { 
+  	var p4 = axios.get('https://coinmarketcap.com/currencies/ripple/')
+  	.then(function (response) {
+  		$ = cheerio.load(response.data);
+  		xrpUSD = $('#quote_price').html().replace('$', '');
+  	}).catch(function (error) {
+    	console.log(error);
+  	});
+
+  	var p5 = axios.get('https://coinmarketcap.com/currencies/digibyte/')
+  	.then(function (response) {
+  		$ = cheerio.load(response.data);
+  		dgbUSD = $('#quote_price').html().replace('$', '');
+  	}).catch(function (error) {
+    	console.log(error);
+  	});
+
+  	Promise.all([p1, p2, p3, p4, p5]).then((values) => { 
 
   		var arbitrage1 = (btcEth * ethCLP - btcCLP) - (btcCLP * 0.007);
 
 	  	res.send({
-			btc: formatCurrency(btcCLP),
-			eth: formatCurrency(ethCLP),
+	  		btcUSD: formatCurrency(btcUSD),
+	  		ethUSD: formatCurrency(ethUSD),
+
+	  		dgbUSD: dgbUSD,
+	  		xrpUSD: xrpUSD,
+
+			btcCLP: formatCurrency(btcCLP),
+			ethCLP: formatCurrency(ethCLP),
 			btcEth: btcEth,
 			arbitrage1: formatCurrency(arbitrage1),
 		});
