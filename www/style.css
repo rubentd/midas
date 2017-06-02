@@ -1,15 +1,17 @@
 #dashboard{
-	margin: 10px;
 	background-color: white;
-	padding: 20px;
+	padding: 20px 0;
 }
 
 .cell{
 	display: inline-block;
 	border: 2px solid white;
-	width: 120px;
+	min-width: 120px;
+	width: 100%;
+	min-height: 34px;
 	padding: 10px 15px;
 	text-align: right;
+	background-color: #cecece;
 }
 
 .cell.surbtc{
@@ -19,4 +21,18 @@
 .cell.crypto{
 	background-color: #0066cc;
 	color: white;
+}
+.cell.btc-e{
+	background-color: #FFF700;
+}
+
+.cell.positive{
+	background-color: #81E067;
+}
+.cell.negative{
+	background-color: #FF5959;
+}
+
+#deals{
+	margin-top: 100px;
 }
