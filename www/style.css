@@ -15,7 +15,7 @@
 	font-size: 18px;
 }
 
-.cell span:first-child{
+.cell span.value{
 	float: left;
 	display: inline-block;
 	width: 60%;
