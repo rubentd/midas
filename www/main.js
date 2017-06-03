@@ -14,10 +14,16 @@ function fetchValues(){
 	$.get('/values/', function(data){
 		
 		$('#btc_usd').html(data.btcUSD);
+		$('#btc_usd_perc').html(data.btcUSDPerc);
+
 		$('#eth_usd').html(data.ethUSD);
+		$('#eth_usd_perc').html(data.ethUSDPerc);
 
 		$('#dgb_usd').html(data.dgbUSD);
+		$('#dgb_usd_perc').html(data.dgbUSDPerc);
+
 		$('#xrp_usd').html(data.xrpUSD);
+		$('#xrp_usd_perc').html(data.xrpUSDPerc);
 
 		$('#btc_clp').html(data.btcCLP);
 		$('#eth_clp').html(data.ethCLP);
@@ -29,5 +35,15 @@ function fetchValues(){
 		}else{
 			$('#arbitrage1').removeClass('positive').addClass('negative');	
 		}
+
+
+		$('span.perc').each(function(){
+			if($(this).html().indexOf('-') < 0){
+				$(this).removeClass('negative').addClass('positive');			
+			}else{
+				$(this).removeClass('positive').addClass('negative');	
+			}
+		});
+		
 	});
 }

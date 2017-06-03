@@ -22,7 +22,7 @@ app.listen(PORT);
 
 
 function getValues(res){
-	var btcCLP, ethCLP, btcEth, btcUSD, ethUSD, dgbUSD, xrpUSD;
+	var btcCLP, ethCLP, btcEth, btcUSD, btcUSDPerc, ethUSD, dgbUSD, dgbUSDPerc, xrpUSD, xrpUSDPerc;
 
 	var p1 = axios.get('https://www.surbtc.com/api/v2/markets/btc-clp/ticker')
   	.then(function (response) {
@@ -38,10 +38,11 @@ function getValues(res){
     	console.log(error);
   	});
 
-  	var p3 = axios.get('https://btc-e.com')
+  	var p3 = axios.get('https://btc-e.com/exchange/btc_usd')
   	.then(function (response) {
   		$ = cheerio.load(response.data);
   		btcUSD = $('#last1').html();
+  		btcUSDPerc = $('#orders-stats .orderStats:first-child strong:nth-child(2)').html();
   		ethUSD = $('#last41').html();
   		btcEth = 1/parseFloat($('#last40').html()).toFixed(2);
   	}).catch(function (error) {
@@ -52,6 +53,7 @@ function getValues(res){
   	.then(function (response) {
   		$ = cheerio.load(response.data);
   		xrpUSD = $('#quote_price').html().replace('$', '');
+  		xrpUSDPerc = $('#quote_price+span').html().replace('(', '').replace(')', '');
   	}).catch(function (error) {
     	console.log(error);
   	});
@@ -60,24 +62,40 @@ function getValues(res){
   	.then(function (response) {
   		$ = cheerio.load(response.data);
   		dgbUSD = $('#quote_price').html().replace('$', '');
+  		dgbUSDPerc = $('#quote_price+span').html().replace('(', '').replace(')', '');
   	}).catch(function (error) {
     	console.log(error);
   	});
 
-  	Promise.all([p1, p2, p3, p4, p5]).then((values) => { 
+
+  	var p6 = axios.get('https://btc-e.com/exchange/eth_usd')
+  	.then(function (response) {
+  		$ = cheerio.load(response.data);
+  		ethUSDPerc = $('#orders-stats .orderStats:first-child strong:nth-child(2)').html();
+  	}).catch(function (error) {
+    	console.log(error);
+  	});
+
+  	Promise.all([p1, p2, p3, p4, p5, p6]).then((values) => { 
 
   		var arbitrage1 = (btcEth * ethCLP - btcCLP) - (btcCLP * 0.007);
 
 	  	res.send({
 	  		btcUSD: formatCurrency(btcUSD),
+	  		btcUSDPerc: btcUSDPerc,
+
 	  		ethUSD: formatCurrency(ethUSD),
+	  		ethUSDPerc: ethUSDPerc,
 
 	  		dgbUSD: dgbUSD,
+	  		dgbUSDPerc: dgbUSDPerc,
+
 	  		xrpUSD: xrpUSD,
+	  		xrpUSDPerc: xrpUSDPerc,
 
 			btcCLP: formatCurrency(btcCLP),
 			ethCLP: formatCurrency(ethCLP),
-			btcEth: btcEth,
+			btcEth: btcEth.toFixed(2),
 			arbitrage1: formatCurrency(arbitrage1),
 		});
 	});
