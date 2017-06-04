@@ -44,7 +44,8 @@ function getValues(res){
   		btcUSD = $('#last1').html();
   		btcUSDPerc = $('#orders-stats .orderStats:first-child strong:nth-child(2)').html();
   		ethUSD = $('#last41').html();
-  		btcEth = 1/parseFloat($('#last40').html()).toFixed(2);
+  		btcEth = (1/parseFloat($('#last40').html())).toFixed(2);
+
   	}).catch(function (error) {
     	console.log(error);
   	});
@@ -95,7 +96,8 @@ function getValues(res){
 
 			btcCLP: formatCurrency(btcCLP),
 			ethCLP: formatCurrency(ethCLP),
-			btcEth: btcEth.toFixed(2),
+
+			btcEth: btcEth,
 			arbitrage1: formatCurrency(arbitrage1),
 		});
 	});
