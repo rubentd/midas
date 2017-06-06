@@ -80,8 +80,10 @@ function getValues(res){
 
   	Promise.all([p1, p2, p3, p4, p5, p6]).then((values) => { 
 
-  		var arbitrage1 = (btcEth * ethCLP - btcCLP) - (btcCLP * 0.007);
-      var arbitrage2 = (btcCLP - (btcEth * clpETH)) - (btcCLP * 0.007);
+      var surBTCFee = (btcCLP * 0.007);
+
+  		var arbitrage1 = (btcEth * ethCLP - btcCLP) - surBTCFee;
+      var arbitrage2 = (btcCLP - (btcEth * clpETH)) - surBTCFee;
 
 	  	res.send({
 	  		btcUSD: formatCurrency(btcUSD),
