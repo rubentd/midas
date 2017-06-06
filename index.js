@@ -22,7 +22,7 @@ app.listen(PORT);
 
 
 function getValues(res){
-	var btcCLP, ethCLP, btcEth, btcUSD, btcUSDPerc, ethUSD, dgbUSD, dgbUSDPerc, xrpUSD, xrpUSDPerc;
+	var btcCLP, ethCLP, clpETH, btcEth, btcUSD, btcUSDPerc, ethUSD, dgbUSD, dgbUSDPerc, xrpUSD, xrpUSDPerc;
 
 	var p1 = axios.get('https://www.surbtc.com/api/v2/markets/btc-clp/ticker')
   	.then(function (response) {
@@ -34,6 +34,7 @@ function getValues(res){
   	var p2 = axios.get('https://www.cryptomkt.com/api/ethclp/1440.json')
   	.then(function (response) {
   		ethCLP = response.data.data.prices_bid.values[0].close_price;
+      clpETH = response.data.data.prices_ask.values[0].hight_price;
   	}).catch(function (error) {
     	console.log(error);
   	});
@@ -80,6 +81,7 @@ function getValues(res){
   	Promise.all([p1, p2, p3, p4, p5, p6]).then((values) => { 
 
   		var arbitrage1 = (btcEth * ethCLP - btcCLP) - (btcCLP * 0.007);
+      var arbitrage2 = (btcCLP - (btcEth * clpETH)) - (btcCLP * 0.007);
 
 	  	res.send({
 	  		btcUSD: formatCurrency(btcUSD),
@@ -94,11 +96,15 @@ function getValues(res){
 	  		xrpUSD: xrpUSD,
 	  		xrpUSDPerc: xrpUSDPerc,
 
-			btcCLP: formatCurrency(btcCLP),
-			ethCLP: formatCurrency(ethCLP),
+        btcCLP: formatCurrency(btcCLP),
+        ethCLP: formatCurrency(ethCLP),
 
-			btcEth: btcEth,
-			arbitrage1: formatCurrency(arbitrage1),
+        clpETH: formatCurrency(clpETH),
+
+        btcEth: btcEth,
+
+        arbitrage1: formatCurrency(arbitrage1),
+        arbitrage2: formatCurrency(arbitrage2),
 		});
 	});
 
