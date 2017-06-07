@@ -129,7 +129,7 @@ function getValues(res){
 	  		xrpUSDPerc: xrpUSDPerc,
 
         btcCLP: formatCurrency(btcCLP),
-        btcCLPSell: formatCurrency(btcCLPSell)
+        btcCLPSell: formatCurrency(btcCLPSell),
 
         ethCLP: formatCurrency(ethCLP),
 
