@@ -4,6 +4,7 @@ var axios = require('axios');
 var cheerio = require('cheerio');
 var app = express();
 var path = require('path');
+var qs = require('qs');
 var public = __dirname + "/www/";
 const PORT = process.env.PORT || 8082;
 
@@ -23,10 +24,32 @@ app.listen(PORT);
 
 function getValues(res){
 	var btcCLP, ethCLP, clpETH, btcEth, btcUSD, btcUSDPerc, ethUSD, dgbUSD, dgbUSDPerc, xrpUSD, xrpUSDPerc;
+  
+  var p1Options = {
+    method: 'POST',
+    url: 'https://www.surbtc.com/api/v2/markets/btc-clp/quotations',
+    data: { 
+      type: 'bid_given_earned_base',
+      amount: [1,'BTC'],
+      market_id: null
+    },
+    headers: {
+        'Accept':'application/json',
+        'Accept-Encoding' : 'gzip, deflate, br',
+        'Accept-Language': 'en-US,en;q=0.8,es;q=0.6,pt;q=0.4,gl;q=0.2,nb;q=0.2',
+        'Cache-Control':'no-cache',
+        'Connection':'keep-alive',
+        'Content-Length':'68',
+        'Content-Type':'application/json;charset=UTF-8',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+    },
+    json: true
+  };
 
-	var p1 = axios.get('https://www.surbtc.com/api/v2/markets/btc-clp/ticker')
+	var p1 = axios(p1Options)
   	.then(function (response) {
-  		btcCLP = response.data.ticker.last_price[0];
+  		btcCLP = response.data.quotation.quote_exchanged[0];
+      console.log(response);
   	}).catch(function (error) {
     	console.log(error);
   	});
