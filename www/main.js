@@ -28,7 +28,7 @@ function fetchValues(){
 		$('#btc_clp').html(data.btcCLP);
 		$('#eth_clp').html(data.ethCLP);
 
-		$('#clp_btc').html(data.btcCLP);
+		$('#clp_btc').html(data.btcCLPSell);
 		$('#clp_eth').html(data.clpETH);
 
 		$('#btc_eth').html(data.btcEth);

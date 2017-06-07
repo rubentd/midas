@@ -25,7 +25,7 @@ app.listen(PORT);
 function getValues(res){
 	var btcCLP, ethCLP, clpETH, btcEth, btcUSD, btcUSDPerc, ethUSD, dgbUSD, dgbUSDPerc, xrpUSD, xrpUSDPerc;
   
-  var p1Options = {
+  var pOptions = {
     method: 'POST',
     url: 'https://www.surbtc.com/api/v2/markets/btc-clp/quotations',
     data: { 
@@ -46,13 +46,20 @@ function getValues(res){
     json: true
   };
 
-	var p1 = axios(p1Options)
+	var p = axios(pOptions)
   	.then(function (response) {
   		btcCLP = response.data.quotation.quote_exchanged[0];
       console.log(response);
   	}).catch(function (error) {
     	console.log(error);
   	});
+
+    var p1 = axios.get('https://www.surbtc.com/api/v2/markets/btc-clp/ticker')
+    .then(function (response) {
+      btcCLPSell = response.data.ticker.last_price[0];
+    }).catch(function (error) {
+      console.log(error);
+    });
 
   	var p2 = axios.get('https://www.cryptomkt.com/api/ethclp/1440.json')
   	.then(function (response) {
@@ -101,7 +108,7 @@ function getValues(res){
     	console.log(error);
   	});
 
-  	Promise.all([p1, p2, p3, p4, p5, p6]).then((values) => { 
+  	Promise.all([p, p1, p2, p3, p4, p5, p6]).then((values) => { 
 
       var surBTCFee = (btcCLP * 0.007);
 
@@ -122,6 +129,8 @@ function getValues(res){
 	  		xrpUSDPerc: xrpUSDPerc,
 
         btcCLP: formatCurrency(btcCLP),
+        btcCLPSell: formatCurrency(btcCLPSell)
+
         ethCLP: formatCurrency(ethCLP),
 
         clpETH: formatCurrency(clpETH),
