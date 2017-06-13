@@ -75,7 +75,7 @@ function getValues(res){
   		btcUSD = $('#last1').html();
   		btcUSDPerc = $('#orders-stats .orderStats:first-child strong:nth-child(2)').html();
   		ethUSD = $('#last41').html();
-  		btcEth = 7.14;//(1/parseFloat($('#last40').html())).toFixed(2);
+  		btcEth = (1/parseFloat($('#last40').html())).toFixed(2);
 
   	}).catch(function (error) {
     	console.log(error);
