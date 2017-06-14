@@ -15,7 +15,8 @@ const authToken = process.env.TWILIO_TOKEN;
 const twilioNumber = process.env.TWILIO_NUMBER;
 const PORT = process.env.PORT || 8082;
 const phoneNumbers = process.env.NUMBERS
-const ALERT_AMOUNT = 100000;
+const ALERT_AMOUNT = 150000;
+const INTERVAL = 10 * 60 * 1000;// check every 10 min
 var client = new twilio(accountSid, authToken);
 
 // viewed at http://localhost:8080
@@ -30,6 +31,9 @@ app.get('/values/', function(req, res) {
 });
 
 app.listen(PORT);
+
+getValues();
+setInterval(getValues, INTERVAL)
 
 
 function getValues(res){
@@ -102,42 +106,45 @@ function getValues(res){
   	Promise.all([p1, p2, p3, p4, p5]).then((values) => { 
 
       var surBTCFee = (btcCLP * 0.007);
-
   		var arbitrage1 = (btcEth * ethCLP - btcCLP) - surBTCFee;
       var arbitrage2 = (btcCLP - (btcEth * clpETH)) - surBTCFee;
 
-      if(arbitrage1 && (parseFloat(arbitrage1) > ALERT_AMOUNT)){
-        sendAlert(arbitrage1);
+      if(res){
+        // Respond requests
+        res.send({
+            btcUSD: formatCurrency(btcUSD),
+            btcUSDPerc: btcUSDPerc,
+
+            ethUSD: formatCurrency(ethUSD),
+            ethUSDPerc: ethUSDPerc,
+
+            btcCLP: formatCurrency(btcCLP),
+            btcCLPSell: formatCurrency(btcCLPSell),
+
+            ethCLP: formatCurrency(ethCLP),
+
+            clpETH: formatCurrency(clpETH),
+
+            btcEth: btcEth,
+
+            arbitrage1: formatCurrency(arbitrage1),
+            arbitrage2: formatCurrency(arbitrage2),
+        });
+      }else{
+        // Send alerts
+        if(arbitrage1 > 0 && (parseFloat(arbitrage1) > ALERT_AMOUNT)){
+          sendAlert(arbitrage1);
+        }
+
+        if(arbitrage2 > 0 && (parseFloat(arbitrage2) > ALERT_AMOUNT)){
+          sendAlert(arbitrage2);
+        }
       }
-
-      if(arbitrage2 && (parseFloat(arbitrage2) > ALERT_AMOUNT)){
-        sendAlert(arbitrage2);
-      }
-
-	  	res.send({
-	  		btcUSD: formatCurrency(btcUSD),
-	  		btcUSDPerc: btcUSDPerc,
-
-	  		ethUSD: formatCurrency(ethUSD),
-	  		ethUSDPerc: ethUSDPerc,
-
-        btcCLP: formatCurrency(btcCLP),
-        btcCLPSell: formatCurrency(btcCLPSell),
-
-        ethCLP: formatCurrency(ethCLP),
-
-        clpETH: formatCurrency(clpETH),
-
-        btcEth: btcEth,
-
-        arbitrage1: formatCurrency(arbitrage1),
-        arbitrage2: formatCurrency(arbitrage2),
-		});
 	});
 
 }
 
-function sendAlert(id, amount){
+function sendAlert(amount){
   var d = new Date();
   var currentDate = d.getDate() +'/'+ (d.getMonth()+1) +'/'+ (d.getFullYear());
   lastAlert = localStorage.getItem('last-alert');
@@ -155,7 +162,7 @@ function sendAlert(id, amount){
         to: n,
         from: twilioNumber
       })
-      .then((message) => console.log(message.sid)); 
+      .then((message) => console.log('message id: ' + message.sid)); 
     });
   
   }else{
