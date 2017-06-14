@@ -19,12 +19,6 @@ function fetchValues(){
 		$('#eth_usd').html(data.ethUSD);
 		$('#eth_usd_perc').html(data.ethUSDPerc);
 
-		$('#dgb_usd').html(data.dgbUSD);
-		$('#dgb_usd_perc').html(data.dgbUSDPerc);
-
-		$('#xrp_usd').html(data.xrpUSD);
-		$('#xrp_usd_perc').html(data.xrpUSDPerc);
-
 		$('#btc_clp').html(data.btcCLP);
 		$('#eth_clp').html(data.ethCLP);
 
