@@ -14,8 +14,8 @@ const accountSid = process.env.TWILIO_SID;
 const authToken = process.env.TWILIO_TOKEN;
 const twilioNumber = process.env.TWILIO_NUMBER;
 const PORT = process.env.PORT || 8082;
-const phoneNumbers = process.env.NUMBERS
-const ALERT_AMOUNT = 150000;
+const phoneNumbers = process.env.NUMBERS;
+const ALERT_AMOUNT = process.env.ALERT_AMOUNT;
 const INTERVAL = 10 * 60 * 1000;// check every 10 min
 var client = new twilio(accountSid, authToken);
 
