@@ -39,15 +39,7 @@ setInterval(getValues, INTERVAL)
 function getValues(res){
 	var btcCLP, ethCLP, clpETH, btcEth, btcUSD, btcUSDPerc, ethUSD, ethUSDPerc;
   
-  var p1Options = {
-    method: 'POST',
-    url: 'https://www.surbtc.com/api/v2/markets/btc-clp/quotations',
-    data: { 
-      type: 'bid_given_earned_base',
-      amount: [1,'BTC'],
-      market_id: null
-    },
-    headers: {
+  var headers = {
         'Accept':'application/json',
         'Accept-Encoding' : 'gzip, deflate, br',
         'Accept-Language': 'en-US,en;q=0.8,es;q=0.6,pt;q=0.4,gl;q=0.2,nb;q=0.2',
@@ -56,23 +48,49 @@ function getValues(res){
         'Content-Length':'68',
         'Content-Type':'application/json;charset=UTF-8',
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+    };
+
+  var p1Options = {
+    method: 'POST',
+    url: 'https://www.surbtc.com/api/v2/markets/btc-clp/quotations',
+    data: { 
+      type: 'bid_given_earned_base',
+      amount: [1,'BTC'],
+      market_id: null
     },
+    headers: headers,
+    json: true
+  };
+
+  var p2Options = {
+    method: 'POST',
+    url: 'https://www.surbtc.com/api/v2/markets/btc-clp/quotations',
+    data: { 
+      type: 'ask_given_spent_base',
+      amount: [1,'BTC'],
+      market_id: null
+    },
+    headers: headers,
     json: true
   };
 
 	var p1 = axios(p1Options)
   	.then(function (response) {
-  		btcCLP = response.data.quotation.quote_exchanged[0];
+      btcCLP = parseFloat(response.data.quotation.quote_exchanged);
+      
     }).catch(function (error) {
     	console.log(error);
   	});
 
-    var p2 = axios.get('https://www.surbtc.com/api/v2/markets/btc-clp/ticker')
+    var p2 = axios(p2Options)
     .then(function (response) {
-      btcCLPSell = response.data.ticker.last_price[0];
+      btcCLPSell = parseFloat(response.data.quotation.quote_balance_change[0]);
+      console.log(btcCLPSell)
+      
     }).catch(function (error) {
       console.log(error);
     });
+
 
   	var p3 = axios.get('https://www.cryptomkt.com/api/ethclp/1440.json')
   	.then(function (response) {
