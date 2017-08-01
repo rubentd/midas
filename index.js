@@ -37,7 +37,7 @@ setInterval(getValues, INTERVAL)
 
 
 function getValues(res){
-	var btcCLP, ethCLP, clpETH, btcEth, btcUSD, btcUSDPerc, ethUSD;
+	var btcCLP, ethCLP, clpETH, btcEth, btcUSD, btcUSDPerc, ethUSD, ethUSDPerc;
   
   var p1Options = {
     method: 'POST',
@@ -82,28 +82,42 @@ function getValues(res){
     	console.log(error);
   	});
 
-  	var p4 = axios.get('https://btc-e.com/exchange/btc_usd')
+  	var p4 = axios.get('http://ether.price.exchange/update')
   	.then(function (response) {
-  		$ = cheerio.load(response.data);
-  		btcUSD = $('#last1').html();
-  		btcUSDPerc = $('#orders-stats .orderStats:first-child strong:nth-child(2)').html();
-  		ethUSD = $('#last41').html();
-  		btcEth = (1/parseFloat($('#last40').html())).toFixed(2);
+
+      btcEth = (1/response.data.last).toFixed(2);
 
   	}).catch(function (error) {
     	console.log(error);
   	});
 
+    var p5 = axios.get('https://coinmarketcap.com/currencies/ethereum/')
+    .then(function (response) {
+      
+      $ = cheerio.load(response.data);
+      ethUSD = $('#quote_price').html().replace('$', '');
+      ethUSDPerc = $('#quote_price+span').html().replace('(', '').replace(')', '').replace('%', '');
 
-  	var p5 = axios.get('https://btc-e.com/exchange/eth_usd')
-  	.then(function (response) {
-  		$ = cheerio.load(response.data);
-  		ethUSDPerc = $('#orders-stats .orderStats:first-child strong:nth-child(2)').html();
-  	}).catch(function (error) {
-    	console.log(error);
-  	});
 
-  	Promise.all([p1, p2, p3, p4, p5]).then((values) => { 
+    }).catch(function (error) {
+      console.log(error);
+    });
+
+    
+    var p6 = axios.get('https://coinmarketcap.com/currencies/bitcoin/')
+    .then(function (response) {
+      
+      $ = cheerio.load(response.data);
+      btcUSD = $('#quote_price').html().replace('$', '');
+      btcUSDPerc = $('#quote_price+span').html().replace('(', '').replace(')', '').replace('%', '');
+
+
+    }).catch(function (error) {
+      console.log(error);
+    });
+
+
+  	Promise.all([p1, p2, p3, p4, p5, p6]).then((values) => { 
 
       var surBTCFee = (btcCLP * 0.007);
   		var arbitrage1 = (btcEth * ethCLP - btcCLP) - surBTCFee;
