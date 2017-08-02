@@ -139,7 +139,7 @@ function getValues(res){
 
       var surBTCFee = (btcCLP * 0.007);
   		var arbitrage1 = (btcEth * ethCLP - btcCLP) - surBTCFee;
-      var arbitrage2 = (btcCLP - (btcEth * clpETH)) - surBTCFee;
+      var arbitrage2 = (btcCLPSell - (btcEth * clpETH)) - surBTCFee;
 
       if(res){
         // Respond requests
