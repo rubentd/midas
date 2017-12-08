@@ -19,7 +19,7 @@ const ALERT_AMOUNT = parseInt(process.env.ALERT_AMOUNT);
 const INTERVAL = 10 * 60 * 1000;// check every 10 min
 var client = new twilio(accountSid, authToken);
 
-// viewed at http://localhost:8080
+// viewed at http://localhost:8082
 app.get('/', function(req, res) {
     res.sendFile(path.join(public + "index.html"));
 });
@@ -113,7 +113,7 @@ function getValues(res){
     .then(function (response) {
       
       $ = cheerio.load(response.data);
-      ethUSD = $('#quote_price').html().replace('$', '');
+      ethUSD = $('#quote_price').attr('data-usd');
       ethUSDPerc = $('#quote_price+span').html().replace('(', '').replace(')', '').replace('%', '');
 
 
@@ -124,9 +124,8 @@ function getValues(res){
     
     var p6 = axios.get('https://coinmarketcap.com/currencies/bitcoin/')
     .then(function (response) {
-      
       $ = cheerio.load(response.data);
-      btcUSD = $('#quote_price').html().replace('$', '');
+      btcUSD = $('#quote_price').attr('data-usd');
       btcUSDPerc = $('#quote_price+span').html().replace('(', '').replace(')', '').replace('%', '');
 
 
