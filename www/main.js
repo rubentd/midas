@@ -19,6 +19,9 @@ function fetchValues(){
 		$('#eth_usd').html(data.ethUSD);
 		$('#eth_usd_perc').html(data.ethUSDPerc);
 
+		$('#iota_usd').html(data.iotaUSD);
+		$('#iota_usd_perc').html(data.iotaUSDPerc);
+
 		$('#btc_clp').html(data.btcCLP);
 		$('#eth_clp').html(data.ethCLP);
 

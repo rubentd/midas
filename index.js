@@ -37,7 +37,7 @@ setInterval(getValues, INTERVAL)
 
 
 function getValues(res){
-	var btcCLP, ethCLP, clpETH, btcEth, btcUSD, btcUSDPerc, ethUSD, ethUSDPerc;
+	var btcCLP, ethCLP, clpETH, btcEth, btcUSD, btcUSDPerc, ethUSD, ethUSDPerc, iotaUSD, iotaUSDPerc;
   
   var headers = {
         'Accept':'application/json',
@@ -133,8 +133,19 @@ function getValues(res){
       console.log(error);
     });
 
+    var p7 = axios.get('https://coinmarketcap.com/currencies/iota/')
+    .then(function (response) {
+      $ = cheerio.load(response.data);
+      iotaUSD = $('#quote_price').attr('data-usd');
+      iotaUSDPerc = $('#quote_price+span').html().replace('(', '').replace(')', '').replace('%', '');
 
-  	Promise.all([p1, p2, p3, p4, p5, p6]).then((values) => { 
+
+    }).catch(function (error) {
+      console.log(error);
+    });
+
+
+  	Promise.all([p1, p2, p3, p4, p5, p6, p7]).then((values) => { 
 
       var surBTCFee = (btcCLP * 0.007);
   		var arbitrage1 = (btcEth * ethCLP - btcCLP) - surBTCFee;
@@ -157,6 +168,9 @@ function getValues(res){
             clpETH: formatCurrency(clpETH),
 
             btcEth: btcEth,
+            
+            iotaUSD: formatCurrency(iotaUSD),
+            iotaUSDPerc: iotaUSDPerc,
 
             arbitrage1: formatCurrency(arbitrage1),
             arbitrage2: formatCurrency(arbitrage2),
