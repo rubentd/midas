@@ -9,10 +9,10 @@ body {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
+    width: 100%;
 }
 
 .item {
-    align-self: flex-start;
     padding: 10px 20px;
     margin: 5px;
     min-width: 120px;
@@ -50,4 +50,18 @@ p {
 }
 .negative {
     color: #ef4f1b;
+}
+
+@media (max-width: 480px) { 
+
+    .container {
+        display: inline-block;
+    }
+
+    .item {
+        display: inline-block;
+        width: calc(50% - 52px);
+        min-width: 0;
+    }
+
 }
