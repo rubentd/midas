@@ -20,7 +20,7 @@
     "babel-preset-stage-2": "^6.24.1"
   },
   "scripts": {
-    "build": "babel index.js --presets es2015,stage-2 > ./dist/index.js",
+    "build": "./node_modules/babel-cli/bin/babel.js index.js --presets es2015,stage-2 > ./dist/index.js",
     "start": "npm run build; node ./dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
