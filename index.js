@@ -14,8 +14,10 @@ const authToken = process.env.TWILIO_TOKEN;
 const twilioNumber = process.env.TWILIO_NUMBER;
 const PORT = process.env.PORT || 8082;
 const phoneNumbers = process.env.NUMBERS;
-const ALERT_AMOUNT = parseInt(process.env.ALERT_AMOUNT);
+const LOCAL_ARB_AMOUNT = parseInt(process.env.LOCAL_ARB_AMOUNT) || 300000;
+const COINMAMA_ARB_AMOUNT = parseInt(process.env.COINMAMA_ARB_AMOUNT) || 25000;
 const INTERVAL = 10 * 60 * 1000;// check every 10 min
+const USD_CLP_OFFSET = process.env.USD_CLP_OFFSET || 8;
 
 const app = express();
 const client = new twilio(accountSid, authToken);
@@ -40,6 +42,17 @@ function getValues() {
     coinmama_eth_usd: localStorage.getItem('values/coinmama_eth_usd'),
     cmkt_eth_sell: localStorage.getItem('values/cmkt_eth_sell'),
     cmkt_eth_buy: localStorage.getItem('values/cmkt_eth_buy'),
+    buda_btc_buy: localStorage.getItem('values/buda_btc_buy'),
+    buda_btc_sell: localStorage.getItem('values/buda_btc_sell'),
+    gdax_btc: localStorage.getItem('values/gdax_btc'),
+    gdax_eth: localStorage.getItem('values/gdax_eth'),
+    spank: localStorage.getItem('values/spank'),
+    spank_perc: localStorage.getItem('values/spank_perc'),
+    usd_clp: localStorage.getItem('values/usd_clp'),
+    btc_eth: localStorage.getItem('values/btc_eth'),
+    coinmama_arbitrage_eth: localStorage.getItem('values/coinmama_arbitrage_eth'),
+    coinmama_arbitrage_btc: localStorage.getItem('values/coinmama_arbitrage_btc'),
+    buda_cmkt_arbitrage: localStorage.getItem('values/buda_cmkt_arbitrage'),
   };
 }
 
@@ -53,8 +66,18 @@ function fetchValues() {
   promises.push(fetchCoinmamaBtc());
   promises.push(fetchCmktEthSell());
   promises.push(fetchCmktEthBuy());
+  promises.push(fetchBudaBtc());
+  promises.push(fetchGdaxBtc());
+  promises.push(fetchGdaxEth());
+  promises.push(fetchSpank());
+  promises.push(fetchUsdClp());
 
   Promise.all(promises).then(() => {
+    
+    // Calculate btc to eth ratio
+    const btcEth = parseInt(localStorage.getItem('values/gdax_btc')) / parseInt(localStorage.getItem('values/gdax_eth'));
+    localStorage.setItem('values/btc_eth', btcEth.toFixed(2)),
+
     spinner.stop();
     checkAlerts();
   });
@@ -65,6 +88,37 @@ function checkAlerts() {
   spinner.setSpinnerString('|/-\\');
   spinner.start();
   // check for alert conditions
+
+  // Check for coinmama alert eth
+  const coinmamaEth = parseFloat(localStorage.getItem('values/coinmama_eth_usd'));
+  const usdPrice = parseInt(localStorage.getItem('values/usd_clp'));
+  const priceOneEth = coinmamaEth*usdPrice;
+  const cmktEthBuy = parseInt(localStorage.getItem('values/cmkt_eth_buy'));
+  const profit = (cmktEthBuy-priceOneEth).toFixed(2);
+  localStorage.setItem('values/coinmama_arbitrage_eth', profit);
+  if (profit >= COINMAMA_ARB_AMOUNT) {
+    sendAlert('coinmama_arb_eth', `coinmama arbitrage eth ${profit}`);
+  }
+
+  // Check for coinmama alert btc
+  const coinmamaBtc = parseFloat(localStorage.getItem('values/coinmama_btc_usd'));
+  const priceOneBtc = coinmamaBtc*usdPrice;
+  const budaBtcBuy = parseInt(localStorage.getItem('values/buda_btc_buy'));
+  const profit2 = (budaBtcBuy-priceOneBtc).toFixed(2);
+  localStorage.setItem('values/coinmama_arbitrage_btc', profit2);
+  if (profit2 >= COINMAMA_ARB_AMOUNT) {
+    sendAlert('coinmama_arb_btc', `coinmama arbitrage btc ${profit2}`);
+  }
+
+  // check for buda/cmkt alert
+  const budaBtcSell = parseInt(localStorage.getItem('values/buda_btc_sell'));
+  const btcToEth = parseFloat(localStorage.getItem('values/btc_eth'));
+  const profit3 = ((btcToEth*cmktEthBuy) - budaBtcSell).toFixed(2);
+  localStorage.setItem('values/buda_cmkt_arbitrage', profit3);
+  if (profit3 >= LOCAL_ARB_AMOUNT) {
+    sendAlert('buda_cmkt_arb', `buda cmkt arbitrage ${profit3}`);
+  }
+
   spinner.stop();
 }
 
@@ -73,7 +127,7 @@ function sendAlert(alertName, message){
 
   const d = new Date();
   const currentDate = d.getDate() +'/'+ (d.getMonth()+1) +'/'+ (d.getFullYear());
-  lastAlert = localStorage.getItem(alertKey);
+  const lastAlert = localStorage.getItem(alertKey);
 
   if (!lastAlert || lastAlert != currentDate) { // only one alert per day
     // Save current date as last alert ocurrence
@@ -112,7 +166,6 @@ function fetchCoinmamaEth() {
     const price = data.eth[3].price + 0.95;
     const qty = data.eth[3].qty;
     const coinmamaEthUsd = price/qty;
-    console.log('coinmama eth', coinmamaEthUsd);
     localStorage.setItem('values/coinmama_eth_usd', coinmamaEthUsd.toFixed(2));
   }).catch((err) => {
     console.log('Error fetching coinmama eth', err);
@@ -137,7 +190,6 @@ function fetchCoinmamaBtc() {
     const price = data.btc[3].price + 0.95;
     const qty = data.btc[3].qty;
     const coinmamaBtcUsd = price/qty;
-    console.log('coinmama btc', coinmamaBtcUsd);
     localStorage.setItem('values/coinmama_btc_usd', coinmamaBtcUsd.toFixed(2));
   }).catch((err) => {
     console.log('Error fetching coinmama btc', err);
@@ -156,7 +208,6 @@ function fetchCmktEthSell() {
   }).then((res) => {
     const data = JSON.parse(res);
     const cmktEthSell = data.data.prices_ask.values[0].close_price;
-    console.log('cmkt eth sell', cmktEthSell);
     localStorage.setItem('values/cmkt_eth_sell', cmktEthSell);
   }).catch((err) => {
     console.log('Error fetching cmkt eth sell', err);
@@ -175,9 +226,88 @@ function fetchCmktEthBuy() {
   }).then((res) => {
     const data = JSON.parse(res);
     const cmktEthBuy = data.data.prices_bid.values[0].close_price;
-    console.log('cmkt eth buy', cmktEthBuy);
     localStorage.setItem('values/cmkt_eth_buy', cmktEthBuy);
   }).catch((err) => {
     console.log('Error fetching cmkt eth buy', err);
+  });
+}
+
+function fetchBudaBtc() {
+  return request({
+    method: 'GET',
+    url: 'https://www.buda.com/api/v2/markets/BTC-CLP/ticker',
+    headers: {
+      'Postman-Token': 'd853d12e-c035-b96e-3acf-91e6d5d0f268',
+      'Cache-Control': 'no-cache',
+      'content-type': 'multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW' },
+    }
+  ).then((res) => {
+    const data = JSON.parse(res);
+    const budaBtcSell = parseInt(data.ticker.min_ask[0]);
+    const budaBtcBuy = parseInt(data.ticker.max_bid[0]);
+    localStorage.setItem('values/buda_btc_sell', budaBtcSell);
+    localStorage.setItem('values/buda_btc_buy', budaBtcBuy);
+  }).catch((err) => {
+    console.log('Error fetching buda btc', err);
+  });
+}
+
+function fetchGdaxBtc() {
+  return request({
+    method: 'GET',
+    url: 'https://api.gdax.com/products/BTC-USD/trades',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+    },
+  }).then((res) => {
+    const data = JSON.parse(res);
+    const gdaxBtc = parseInt(data[0].price);
+    localStorage.setItem('values/gdax_btc', gdaxBtc);
+  }).catch((err) => {
+    console.log('Error fetching gdax btc', err);
+  });
+}
+
+function fetchGdaxEth() {
+  return request({
+    method: 'GET',
+    url: 'https://api.gdax.com/products/ETH-USD/trades',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+    },
+  }).then((res) => {
+    const data = JSON.parse(res);
+    const gdaxEth = parseInt(data[0].price);
+    localStorage.setItem('values/gdax_eth', gdaxEth);
+  }).catch((err) => {
+    console.log('Error fetching gdax eth', err);
+  });
+}
+
+function fetchSpank() {
+  return request({
+    method: 'GET',
+    url: 'https://coinmarketcap.com/currencies/spankchain/'
+  }).then((res) => {
+    const $ = cheerio.load(res);
+    const spank = $('#quote_price').attr('data-usd');
+    const spankPerc = $('#quote_price+span span').html();
+    localStorage.setItem('values/spank', spank);
+    localStorage.setItem('values/spank_perc', spankPerc);
+  }).catch((err) => {
+    console.log('Error fetching spank', err);
+  });
+}
+
+function fetchUsdClp() {
+  return request({
+    method: 'GET',
+    url: 'http://www.xe.com/es/currencyconverter/convert/?From=USD&To=CLP'
+  }).then((res) => {
+    const $ = cheerio.load(res);
+    const usdClp = $('#ucc-container .uccResultAmount').html();
+    localStorage.setItem('values/usd_clp', parseInt(usdClp) + USD_CLP_OFFSET);
+  }).catch((err) => {
+    console.log('Error fetching usd clp', err);
   });
 }
