@@ -11,8 +11,11 @@ function fetchValues() {
     $.get('/values/', function(data) {
 
         // Coinmama values
-        $('#coinmama_btc_usd').html(formatCurrency(data.coinmama_btc_usd));
-        $('#coinmama_eth_usd').html(formatCurrency(data.coinmama_eth_usd));
+        $('#coinmama_btc_usd').html('$ ' + formatCurrency(data.coinmama_btc_usd));
+        $('#coinmama_eth_usd').html('$ ' + formatCurrency(data.coinmama_eth_usd));
+        // coinmama to clp
+        $('#coinmama_btc_usd_clp').html('CLP ' + formatCurrency(data.coinmama_btc_usd * data.usd_clp));
+        $('#coinmama_eth_usd_clp').html('CLP ' + formatCurrency(data.coinmama_eth_usd * data.usd_clp));
 
         // CMKT values
         $('#cmkt_eth_sell').html(formatCurrency(data.cmkt_eth_sell));
@@ -36,6 +39,7 @@ function fetchValues() {
 
         // buda / cmkt
         $('#buda_cmkt_arbitrage').html(formatCurrency(data.buda_cmkt_arbitrage));
+        
 
         // format styles
         formatStyle('#spank_perc');
