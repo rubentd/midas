@@ -21,7 +21,7 @@
   },
   "scripts": {
     "build": "babel index.js --presets es2015,stage-2 > ./dist/index.js",
-    "start": "npm run build; node dist/index.js",
+    "start": "npm run build; node ./dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
