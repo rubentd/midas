@@ -38,6 +38,8 @@ function getValues() {
   return {
     coinmama_btc_usd: localStorage.getItem('values/coinmama_btc_usd'),
     coinmama_eth_usd: localStorage.getItem('values/coinmama_eth_usd'),
+    cmkt_eth_sell: localStorage.getItem('values/cmkt_eth_sell'),
+    cmkt_eth_buy: localStorage.getItem('values/cmkt_eth_buy'),
   };
 }
 
@@ -49,6 +51,8 @@ function fetchValues() {
   let promises = [];
   promises.push(fetchCoinmamaEth());
   promises.push(fetchCoinmamaBtc());
+  promises.push(fetchCmktEthSell());
+  promises.push(fetchCmktEthBuy());
 
   Promise.all(promises).then(() => {
     spinner.stop();
@@ -137,5 +141,43 @@ function fetchCoinmamaBtc() {
     localStorage.setItem('values/coinmama_btc_usd', coinmamaBtcUsd.toFixed(2));
   }).catch((err) => {
     console.log('Error fetching coinmama btc', err);
+  });
+}
+
+function fetchCmktEthSell() {
+  return request({
+    method: 'GET',
+    url: 'https://www.cryptomkt.com/api/ethclp/1440.json',
+    headers: { 
+      'Postman-Token': 'f4f68dc9-484d-0455-d253-4413cde4faec',
+      'Cache-Control': 'no-cache',
+      'content-type': 'multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW'
+    },
+  }).then((res) => {
+    const data = JSON.parse(res);
+    const cmktEthSell = data.data.prices_ask.values[0].close_price;
+    console.log('cmkt eth sell', cmktEthSell);
+    localStorage.setItem('values/cmkt_eth_sell', cmktEthSell);
+  }).catch((err) => {
+    console.log('Error fetching cmkt eth sell', err);
+  });
+}
+
+function fetchCmktEthBuy() {
+  return request({
+    method: 'GET',
+    url: 'https://www.cryptomkt.com/api/ethclp/1440.json',
+    headers: { 
+      'Postman-Token': 'f4f68dc9-484d-0455-d253-4413cde4faec',
+      'Cache-Control': 'no-cache',
+      'content-type': 'multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW'
+    },
+  }).then((res) => {
+    const data = JSON.parse(res);
+    const cmktEthBuy = data.data.prices_bid.values[0].close_price;
+    console.log('cmkt eth buy', cmktEthBuy);
+    localStorage.setItem('values/cmkt_eth_buy', cmktEthBuy);
+  }).catch((err) => {
+    console.log('Error fetching cmkt eth buy', err);
   });
 }

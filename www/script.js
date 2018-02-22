@@ -14,6 +14,10 @@ function fetchValues() {
         $('#coinmama_btc_usd').html(formatCurrency(data.coinmama_btc_usd));
         $('#coinmama_eth_usd').html(formatCurrency(data.coinmama_eth_usd));
 
+        // CMKT values
+        $('#cmkt_eth_sell').html(formatCurrency(data.cmkt_eth_sell));
+        $('#cmkt_eth_buy').html(formatCurrency(data.cmkt_eth_buy));
+
     });
 }
 

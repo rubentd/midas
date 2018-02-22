@@ -29,7 +29,7 @@ h1 {
 h2 {
     font-size: 14px;
     font-weight: bold;
-    color: #fff;
+    color: #ccc;
     margin: 5px 0;
 }
 
@@ -43,9 +43,11 @@ p {
 .item > p > span:nth-child(2) {
     font-size: 12px;
 }
-.item > p > span:nth-child(2).positive {
+
+/* Green and red */
+.positive {
     color: #71aa3c;
 }
-.item > p > span:nth-child(2).negative {
+.negative {
     color: #ef4f1b;
 }
