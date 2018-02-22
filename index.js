@@ -166,7 +166,8 @@ function fetchCoinmamaEth() {
     const price = data.eth[3].price + 0.95;
     const qty = data.eth[3].qty;
     const coinmamaEthUsd = price/qty;
-    localStorage.setItem('values/coinmama_eth_usd', coinmamaEthUsd.toFixed(2));
+    const finalPrice = coinmamaEthUsd + coinmamaEthUsd * 0.04; // Add 4% fee
+    localStorage.setItem('values/coinmama_eth_usd', finalPrice.toFixed(2));
   }).catch((err) => {
     console.log('Error fetching coinmama eth', err);
   });
@@ -190,7 +191,8 @@ function fetchCoinmamaBtc() {
     const price = data.btc[3].price + 0.95;
     const qty = data.btc[3].qty;
     const coinmamaBtcUsd = price/qty;
-    localStorage.setItem('values/coinmama_btc_usd', coinmamaBtcUsd.toFixed(2));
+    const finalPrice = coinmamaBtcUsd + coinmamaBtcUsd * 0.04; // Add 4% fee
+    localStorage.setItem('values/coinmama_btc_usd', finalPrice.toFixed(2));
   }).catch((err) => {
     console.log('Error fetching coinmama btc', err);
   });
