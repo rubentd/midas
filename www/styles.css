@@ -1,0 +1,51 @@
+body {
+    background-color: #1e2b34;
+    color: white;
+    font-family: 'Titillium Web', sans-serif;
+    font-size: 12px;
+}
+
+.container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+.item {
+    align-self: flex-start;
+    padding: 10px 20px;
+    margin: 5px;
+    min-width: 120px;
+    background-color: #2f3d45; 
+}
+
+h1 {
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 10px;
+}
+
+h2 {
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+    margin: 5px 0;
+}
+
+p {
+    font-size: 20px;
+    margin: 0;
+    text-align: right;
+}
+
+/* Percentage */
+.item > p > span:nth-child(2) {
+    font-size: 12px;
+}
+.item > p > span:nth-child(2).positive {
+    color: #71aa3c;
+}
+.item > p > span:nth-child(2).negative {
+    color: #ef4f1b;
+}

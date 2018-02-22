@@ -1,14 +1,13 @@
-var express = require('express');
-var formatCurrency = require('format-currency')
-var axios = require('axios');
-var cheerio = require('cheerio');
-var app = express();
-var twilio = require('twilio');
-var path = require('path');
-var qs = require('qs');
-var LocalStorage = require('node-localstorage').LocalStorage;
-localStorage = new LocalStorage('./local-storage');
-var public = __dirname + "/www/";
+import express from 'express';
+import request from 'request-promise';
+import twilio from 'twilio';
+import path from 'path';
+import cheerio from 'cheerio';
+import { LocalStorage } from 'node-localstorage';
+import { Spinner } from 'cli-spinner';
+
+const localStorage = new LocalStorage('./storage');
+const publicDir = __dirname + "/../www/";
 
 const accountSid = process.env.TWILIO_SID;
 const authToken = process.env.TWILIO_TOKEN;
@@ -17,200 +16,89 @@ const PORT = process.env.PORT || 8082;
 const phoneNumbers = process.env.NUMBERS;
 const ALERT_AMOUNT = parseInt(process.env.ALERT_AMOUNT);
 const INTERVAL = 10 * 60 * 1000;// check every 10 min
-var client = new twilio(accountSid, authToken);
 
-// viewed at http://localhost:8082
+const app = express();
+const client = new twilio(accountSid, authToken);
+
 app.get('/', function(req, res) {
-    res.sendFile(path.join(public + "index.html"));
+    res.sendFile(path.join(publicDir + "index.html"));
 });
 
-app.use('/', express.static(public));
-
-app.get('/values/', function(req, res) {
-	getValues(res);
-});
+app.use('/', express.static(publicDir));
 
 app.listen(PORT);
 
-getValues();
-setInterval(getValues, INTERVAL)
+fetchValues();
+setInterval(fetchValues, INTERVAL);
 
+function fetchValues() {
+  const spinner = new Spinner('fetching values %s');
+  spinner.setSpinnerString('|/-\\');
+  spinner.start();
 
-function getValues(res){
-	var btcCLP, ethCLP, clpETH, btcEth, btcUSD, btcUSDPerc, ethUSD, ethUSDPerc, iotaUSD, iotaUSDPerc;
+  let promises = [];
   
-  var headers = {
-        'Accept':'application/json',
-        'Accept-Encoding' : 'gzip, deflate, br',
-        'Accept-Language': 'en-US,en;q=0.8,es;q=0.6,pt;q=0.4,gl;q=0.2,nb;q=0.2',
-        'Cache-Control':'no-cache',
-        'Connection':'keep-alive',
-        'Content-Length':'68',
-        'Content-Type':'application/json;charset=UTF-8',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
-    };
-
-  var p1Options = {
-    method: 'POST',
-    url: 'https://www.surbtc.com/api/v2/markets/btc-clp/quotations',
-    data: { 
-      type: 'bid_given_earned_base',
-      amount: [1,'BTC'],
-      market_id: null
-    },
-    headers: headers,
-    json: true
-  };
-
-  var p2Options = {
-    method: 'POST',
-    url: 'https://www.surbtc.com/api/v2/markets/btc-clp/quotations',
-    data: { 
-      type: 'ask_given_spent_base',
-      amount: [1,'BTC'],
-      market_id: null
-    },
-    headers: headers,
-    json: true
-  };
-
-	var p1 = axios(p1Options)
-  	.then(function (response) {
-      btcCLP = parseFloat(response.data.quotation.quote_exchanged);
-      
-    }).catch(function (error) {
-    	console.log(error);
-  	});
-
-    var p2 = axios(p2Options)
-    .then(function (response) {
-      btcCLPSell = parseFloat(response.data.quotation.quote_balance_change[0]);
-      console.log(btcCLPSell)
-      
-    }).catch(function (error) {
-      console.log(error);
-    });
-
-
-  	var p3 = axios.get('https://www.cryptomkt.com/api/ethclp/1440.json')
-  	.then(function (response) {
-  		ethCLP = response.data.data.prices_bid.values[0].close_price;
-      clpETH = response.data.data.prices_ask.values[0].hight_price;
-  	}).catch(function (error) {
-    	console.log(error);
-  	});
-
-  	var p4 = axios.get('http://ether.price.exchange/update')
-  	.then(function (response) {
-
-      btcEth = (1/response.data.last).toFixed(2);
-
-  	}).catch(function (error) {
-    	console.log(error);
-  	});
-
-    var p5 = axios.get('https://coinmarketcap.com/currencies/ethereum/')
-    .then(function (response) {
-      
-      $ = cheerio.load(response.data);
-      ethUSD = $('#quote_price').attr('data-usd');
-      ethUSDPerc = $('#quote_price+span').html().replace('(', '').replace(')', '').replace('%', '');
-
-
-    }).catch(function (error) {
-      console.log(error);
-    });
-
-    
-    var p6 = axios.get('https://coinmarketcap.com/currencies/bitcoin/')
-    .then(function (response) {
-      $ = cheerio.load(response.data);
-      btcUSD = $('#quote_price').attr('data-usd');
-      btcUSDPerc = $('#quote_price+span').html().replace('(', '').replace(')', '').replace('%', '');
-
-
-    }).catch(function (error) {
-      console.log(error);
-    });
-
-    var p7 = axios.get('https://coinmarketcap.com/currencies/iota/')
-    .then(function (response) {
-      $ = cheerio.load(response.data);
-      iotaUSD = $('#quote_price').attr('data-usd');
-      iotaUSDPerc = $('#quote_price+span').html().replace('(', '').replace(')', '').replace('%', '');
-
-
-    }).catch(function (error) {
-      console.log(error);
-    });
-
-
-  	Promise.all([p1, p2, p3, p4, p5, p6, p7]).then((values) => { 
-
-      var surBTCFee = (btcCLP * 0.007);
-  		var arbitrage1 = (btcEth * ethCLP - btcCLP) - surBTCFee;
-      var arbitrage2 = (btcCLPSell - (btcEth * clpETH)) - surBTCFee;
-
-      if(res){
-        // Respond requests
-        res.send({
-            btcUSD: formatCurrency(btcUSD),
-            btcUSDPerc: btcUSDPerc,
-
-            ethUSD: formatCurrency(ethUSD),
-            ethUSDPerc: ethUSDPerc,
-
-            btcCLP: formatCurrency(btcCLP),
-            btcCLPSell: formatCurrency(btcCLPSell),
-
-            ethCLP: formatCurrency(ethCLP),
-
-            clpETH: formatCurrency(clpETH),
-
-            btcEth: btcEth,
-            
-            iotaUSD: formatCurrency(iotaUSD),
-            iotaUSDPerc: iotaUSDPerc,
-
-            arbitrage1: formatCurrency(arbitrage1),
-            arbitrage2: formatCurrency(arbitrage2),
-        });
-      }else{
-        // Send alerts
-        if(arbitrage1 > 0 && (parseFloat(arbitrage1) > ALERT_AMOUNT)){
-          sendAlert(arbitrage1);
-        }
-
-        if(arbitrage2 > 0 && (parseFloat(arbitrage2) > ALERT_AMOUNT)){
-          sendAlert(arbitrage2);
-        }
+  promises.push(
+    request({
+      method: 'POST',
+      url: 'https://www.coinmama.com/ajax/get_packages',
+      headers: { 
+        'Cache-Control': 'no-cache',
+        'cookie': '_ga=GA1.2.1749618640.1518005135; ftr_ncd=6; __ssid=a7165881-59cf-40ca-aae3-9d99fcf87062; __zlcmid=krh6X3YrVT0lcQ; PHPSESSID=cma22uvp7p1ib3kbt45fkdod62; _hjIncludedInSample=1; visid_incap_1551563=EtfLZg2mSbywpqcCx0MbmIfreloAAAAAQ0IPAAAAAACAQ1uCAb6kFGPCpnuB85RGM6nXz7yXaxuV; __context=QDakH4J938zEYqIRlbw6GkELZaSnGP01kSxrHVCjxaSryf0lj5/TUqJvCBlSJFMFo11ppalMioQILq2kU3HgWg==; incap_ses_785_1551563=pc2hVnQJ2zoQ+FAmj+HkClQejloAAAAAkGqivuRMUEsGjAqdI/RfZg==; __insp_wid=460266710; __insp_nv=true; __insp_targlpu=aHR0cHM6Ly93d3cuY29pbm1hbWEuY29tLw%3D%3D; __insp_targlpt=Q29pbm1hbWEgfCBCdXkgQml0Y29pbnMgd2l0aCBDcmVkaXQgQ2FyZA%3D%3D; __insp_norec_sess=true; ftr_blst_1h=1519264097683; __insp_slim=1519264939778; forterToken=41238d25135f4829be4b3f089edc1438_1519265548471__UDF4',
+        'content-type': 'multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW',
+      },
+      formData: {
+        token: 'd35ff5540b0be28064b9002c101ef289',
+        'coins[]': 'eth',
       }
-	});
+    }).then((res) => {
+      const data = JSON.parse(res);
+      const price = data.eth[3].price;
+      const qty = data.eth[3].qty;
+      const coinmamaEthUsd = price/qty;
+      console.log(coinmamaEthUsd);
+      localStorage.setItem('values/coinmama_eth_usd', coinmamaEthUsd);
+    }).catch((err) => {
+      console.log('Error fetching coinmama eth', err);
+    })
+  );
 
+  Promise.all(promises).then(() => {
+    spinner.stop();
+    checkAlerts();
+  });
 }
 
-function sendAlert(amount){
-  var d = new Date();
-  var currentDate = d.getDate() +'/'+ (d.getMonth()+1) +'/'+ (d.getFullYear());
-  lastAlert = localStorage.getItem('last-alert');
+function checkAlerts() {
+  const spinner = new Spinner('checking for alerts %s');
+  spinner.setSpinnerString('|/-\\');
+  spinner.start();
 
-  if(!lastAlert || lastAlert != currentDate){ // only one alert per day
+  spinner.stop();
+}
 
-    // Send new alert
+function sendAlert(alertName, message){
+  const alertKey = `alerts/lastDate/${alertName}`;
 
-    localStorage.setItem('last-alert', currentDate);
+  const d = new Date();
+  const currentDate = d.getDate() +'/'+ (d.getMonth()+1) +'/'+ (d.getFullYear());
+  lastAlert = localStorage.getItem(alertKey);
+
+  if (!lastAlert || lastAlert != currentDate) { // only one alert per day
+
+    // Save current date as last alert ocurrence
+    localStorage.setItem(alertKey, currentDate);
 
     phoneNumbers.split(',').forEach((n) => {
       console.log('Sending alert to: ' + n + ' Date:' + currentDate);
       client.messages.create({
-        body: 'Midas alert: ' + formatCurrency(amount),
+        body: message,
         to: n,
-        from: twilioNumber
-      })
-      .then((message) => console.log('message id: ' + message.sid)); 
+        from: twilioNumber,
+      }).then(message => console.log('message id: ' + message.sid)); 
     });
   
   }else{
-    console.log('already sent an alert today: ' + lastAlert);
+    console.log('Already sent an alert today: ' + lastAlert);
   }
 }
