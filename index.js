@@ -17,7 +17,7 @@ const phoneNumbers = process.env.NUMBERS;
 const LOCAL_ARB_AMOUNT = parseInt(process.env.LOCAL_ARB_AMOUNT) || 300000;
 const COINMAMA_ARB_AMOUNT = parseInt(process.env.COINMAMA_ARB_AMOUNT) || 25000;
 const INTERVAL = 10 * 60 * 1000;// check every 10 min
-const USD_CLP_OFFSET = process.env.USD_CLP_OFFSET || 8;
+const USD_CLP_OFFSET = parseInt(process.env.USD_CLP_OFFSET) || 8;
 
 const app = express();
 const client = new twilio(accountSid, authToken);
